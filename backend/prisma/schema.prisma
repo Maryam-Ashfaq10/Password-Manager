@@ -1,0 +1,45 @@
+// Prisma schema — SQLite for single-user local use.
+// To move to Postgres later: change `provider` to "postgresql" and update DATABASE_URL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Single user — just you. One row holds the master-password hash.
+model User {
+  id          String       @id @default(cuid())
+  masterHash  String // Argon2id hash of the master password (never the password itself)
+  createdAt   DateTime     @default(now())
+  credentials Credential[]
+}
+
+model Credential {
+  id       String  @id @default(cuid())
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  website  String // plaintext — used for search
+  url      String?
+  username String // plaintext — searchable
+
+  // Password, encrypted at rest with AES-256-GCM.
+  passwordEnc String // ciphertext (hex)
+  passwordIv  String // per-record initialization vector (hex)
+  passwordTag String // GCM authentication tag (hex)
+
+  // Optional notes, encrypted the same way. Null when there are no notes.
+  notesEnc String?
+  notesIv  String?
+  notesTag String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([website])
+  @@index([username])
+}

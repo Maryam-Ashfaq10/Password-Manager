@@ -1,0 +1,20 @@
+# dependencies
+node_modules/
+
+# secrets — never commit
+.env
+backend/.env
+*.key
+
+# database (local, contains your vault)
+*.db
+*.db-journal
+backend/prisma/dev.db*
+
+# build output
+dist/
+build/
+
+# logs / misc
+*.log
+.DS_Store
